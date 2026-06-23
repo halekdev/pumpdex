@@ -1,6 +1,7 @@
 import { getDb } from './_db.js'
+import { requireAuth } from './_auth.js'
 
-const PUMPFUN_API = 'https://frontend-api-v2.pump.fun'
+const PUMPFUN_API = 'https://frontend-api-v3.pump.fun'
 
 async function fetchPumpFunCoins(offset = 0, limit = 50, sort = 'market_cap', order = 'DESC') {
   const url = `${PUMPFUN_API}/coins?offset=${offset}&limit=${limit}&sort=${sort}&order=${order}&includeNsfw=false`
@@ -50,6 +51,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'POST or GET' })
   }
 
+  if (!requireAuth(req, res)) return
+
   const sql = getDb()
   const limit = parseInt(req.query?.limit) || 50
   const pages = parseInt(req.query?.pages) || 3
@@ -86,33 +89,40 @@ export default async function handler(req, res) {
       } catch {}
     }
 
-    let synced = 0
-
+    // De-dupe by mint (a multi-row INSERT can't hit the same conflict target twice)
+    // and batch the upsert into chunks instead of one query per coin.
+    const byMint = new Map()
     for (const coin of allCoins) {
       const t = formatToken(coin)
-      const price = priceMap[t.mint] || 0
+      if (!t.mint) continue
+      t.price = priceMap[t.mint] || 0
+      byMint.set(t.mint, t)
+    }
+    const tokens = [...byMint.values()]
 
-      await sql`
-        INSERT INTO tokens (mint, name, symbol, description, image_uri, metadata_uri, twitter, telegram, website, market_cap, price, supply, is_migrated, raydium_pool, synced_at, updated_at)
-        VALUES (${t.mint}, ${t.name}, ${t.symbol}, ${t.description}, ${t.image_uri}, ${t.metadata_uri}, ${t.twitter}, ${t.telegram}, ${t.website}, ${t.market_cap}, ${price}, ${t.supply}, ${t.is_migrated}, ${t.raydium_pool}, NOW(), NOW())
-        ON CONFLICT (mint) DO UPDATE SET
-          name = EXCLUDED.name,
-          symbol = EXCLUDED.symbol,
-          description = EXCLUDED.description,
-          image_uri = EXCLUDED.image_uri,
-          metadata_uri = EXCLUDED.metadata_uri,
-          twitter = EXCLUDED.twitter,
-          telegram = EXCLUDED.telegram,
-          website = EXCLUDED.website,
-          market_cap = EXCLUDED.market_cap,
-          price = EXCLUDED.price,
-          supply = EXCLUDED.supply,
-          is_migrated = EXCLUDED.is_migrated,
-          raydium_pool = EXCLUDED.raydium_pool,
-          synced_at = NOW(),
-          updated_at = NOW()
-      `
-      synced++
+    const COLS = ['mint', 'name', 'symbol', 'description', 'image_uri', 'metadata_uri', 'twitter', 'telegram', 'website', 'market_cap', 'price', 'supply', 'is_migrated', 'raydium_pool']
+    const updatable = COLS.filter(c => c !== 'mint')
+    const setClause = updatable.map(c => `${c} = EXCLUDED.${c}`).join(', ')
+
+    let synced = 0
+    const CHUNK = 200
+    for (let i = 0; i < tokens.length; i += CHUNK) {
+      const chunk = tokens.slice(i, i + CHUNK)
+      const valRows = []
+      const params = []
+      let p = 1
+      for (const t of chunk) {
+        const ph = COLS.map(() => `$${p++}`)
+        valRows.push(`(${ph.join(', ')}, NOW(), NOW())`)
+        params.push(...COLS.map(c => t[c]))
+      }
+      await sql.query(
+        `INSERT INTO tokens (${COLS.join(', ')}, synced_at, updated_at)
+         VALUES ${valRows.join(', ')}
+         ON CONFLICT (mint) DO UPDATE SET ${setClause}, synced_at = NOW(), updated_at = NOW()`,
+        params
+      )
+      synced += chunk.length
     }
 
     return res.status(200).json({ synced, total_fetched: allCoins.length })

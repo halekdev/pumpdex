@@ -1,9 +1,12 @@
 import { getDb } from './_db.js'
+import { requireAuth } from './_auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' })
   }
+
+  if (!requireAuth(req, res)) return
 
   const sql = getDb()
 

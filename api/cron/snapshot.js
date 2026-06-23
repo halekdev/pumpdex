@@ -1,10 +1,13 @@
 import { getDb } from '../_db.js'
+import { requireAuth } from '../_auth.js'
 
 export const config = {
   schedule: '*/5 * * * *',
 }
 
 export default async function handler(req, res) {
+  if (!requireAuth(req, res)) return
+
   const sql = getDb()
 
   try {
@@ -39,25 +42,54 @@ export default async function handler(req, res) {
       } catch {}
     }
 
-    // Insert snapshots and update token prices
-    let count = 0
+    // Build the rows to snapshot, then write them in two batched statements
+    // instead of 2 round-trips per token.
+    const rows = []
     for (const token of tokens) {
       const freshPrice = priceMap[token.mint] || parseFloat(token.price) || 0
       if (freshPrice === 0) continue
+      rows.push({
+        mint: token.mint,
+        price: freshPrice,
+        market_cap: token.market_cap,
+        volume: token.volume_24h || 0,
+        hasFresh: !!priceMap[token.mint],
+      })
+    }
 
-      await sql`
-        INSERT INTO price_history (mint, price, market_cap, volume, timestamp)
-        VALUES (${token.mint}, ${freshPrice}, ${token.market_cap}, ${token.volume_24h || 0}, NOW())
-      `
-
-      // Update the token's current price too
-      if (priceMap[token.mint]) {
-        await sql`
-          UPDATE tokens SET price = ${freshPrice}, updated_at = NOW() WHERE mint = ${token.mint}
-        `
+    let count = 0
+    if (rows.length) {
+      // Batch INSERT all snapshots in one statement.
+      const insVals = []
+      const insParams = []
+      let p = 1
+      for (const r of rows) {
+        insVals.push(`($${p++}, $${p++}, $${p++}, $${p++}, NOW())`)
+        insParams.push(r.mint, r.price, r.market_cap, r.volume)
       }
+      await sql.query(
+        `INSERT INTO price_history (mint, price, market_cap, volume, timestamp) VALUES ${insVals.join(',')}`,
+        insParams
+      )
 
-      count++
+      // Batch UPDATE current prices for tokens that got a fresh Jupiter price.
+      const fresh = rows.filter(r => r.hasFresh)
+      if (fresh.length) {
+        const updVals = []
+        const updParams = []
+        let q = 1
+        for (const r of fresh) {
+          updVals.push(`($${q++}, $${q++}::numeric)`)
+          updParams.push(r.mint, r.price)
+        }
+        await sql.query(
+          `UPDATE tokens SET price = v.price, updated_at = NOW()
+           FROM (VALUES ${updVals.join(',')}) AS v(mint, price)
+           WHERE tokens.mint = v.mint`,
+          updParams
+        )
+      }
+      count = rows.length
     }
 
     // Clean up old snapshots (keep 7 days)

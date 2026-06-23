@@ -11,9 +11,12 @@ export async function getPriceChanges(sql, mints) {
 
   try {
     const placeholders = mints.map((_, i) => `$${i + 1}`).join(',')
+    // We only ever compare against points up to ~24h old (plus drift tolerance),
+    // so bound the scan to 48h instead of pulling the full 7-day retention window.
     const rows = await sql.query(
       `SELECT mint, price, timestamp FROM price_history
        WHERE mint IN (${placeholders})
+         AND timestamp > NOW() - INTERVAL '48 hours'
        ORDER BY mint, timestamp DESC`,
       mints
     )

@@ -21,27 +21,23 @@ app.get('/api/tokens', async (req, res) => {
   const off = parseInt(offset) || 0
 
   try {
-    let query = ''
-    let params = []
-
-    if (search && status !== 'all') {
-      const isMigrated = status !== 'not_migrated'
-      query = `SELECT * FROM tokens WHERE (LOWER(name) LIKE $1 OR LOWER(symbol) LIKE $1) AND is_migrated = $2 ORDER BY ${sortCol} ${dir} LIMIT $3 OFFSET $4`
-      params = [`%${search.toLowerCase()}%`, isMigrated, lim, off]
-    } else if (search) {
-      query = `SELECT * FROM tokens WHERE LOWER(name) LIKE $1 OR LOWER(symbol) LIKE $1 ORDER BY ${sortCol} ${dir} LIMIT $2 OFFSET $3`
-      params = [`%${search.toLowerCase()}%`, lim, off]
-    } else if (status !== 'all') {
-      const isMigrated = status !== 'not_migrated'
-      query = `SELECT * FROM tokens WHERE is_migrated = $1 ORDER BY ${sortCol} ${dir} LIMIT $2 OFFSET $3`
-      params = [isMigrated, lim, off]
-    } else {
-      query = `SELECT * FROM tokens ORDER BY ${sortCol} ${dir} LIMIT $1 OFFSET $2`
-      params = [lim, off]
+    const conditions = []
+    const whereParams = []
+    if (search) {
+      whereParams.push(`%${search.toLowerCase()}%`)
+      conditions.push(`(LOWER(name) LIKE $${whereParams.length} OR LOWER(symbol) LIKE $${whereParams.length})`)
     }
+    if (status !== 'all') {
+      whereParams.push(status !== 'not_migrated')
+      conditions.push(`is_migrated = $${whereParams.length}`)
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    const query = `SELECT * FROM tokens ${where} ORDER BY ${sortCol} ${dir} LIMIT $${whereParams.length + 1} OFFSET $${whereParams.length + 2}`
+    const params = [...whereParams, lim, off]
 
     const rows = await sql.query(query, params)
-    const countResult = await sql`SELECT COUNT(*) as total FROM tokens`
+    const countResult = await sql.query(`SELECT COUNT(*) as total FROM tokens ${where}`, whereParams)
 
     // Compute per-timeframe price changes from history
     const mints = rows.map(r => r.mint)
@@ -78,6 +74,7 @@ async function getPriceChanges(mints) {
     const rows = await sql.query(
       `SELECT mint, price, timestamp FROM price_history
        WHERE mint IN (${placeholders})
+         AND timestamp > NOW() - INTERVAL '48 hours'
        ORDER BY mint, timestamp DESC`,
       mints
     )
