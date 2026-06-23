@@ -1,4 +1,5 @@
 import { useInView } from '../hooks/useInView'
+import { TELEGRAM_BOT_URL } from '../botConfig'
 import './Vision.css'
 
 const steps = [
@@ -6,7 +7,7 @@ const steps = [
     phase: 'Phase 1',
     title: 'Launch',
     status: 'live',
-    items: ['PumpFun token scanner', 'Free token updates', 'PumpDex_Bot launch', 'Community creation'],
+    items: ['PumpFun token scanner', 'Free token updates', 'Telegram bot launch', 'Token alerts'],
   },
   {
     phase: 'Phase 2',
@@ -72,7 +73,7 @@ export default function Vision({ onLaunchApp }) {
             <p className="vision__cta-sub">Join the movement. Free updates. AI communities. Zero cost.</p>
             <div className="vision__cta-actions">
               <button onClick={onLaunchApp} className="vision__cta-btn vision__cta-btn--primary">Launch Scanner</button>
-              <a href="#bot" className="vision__cta-btn vision__cta-btn--secondary">Try the Bot</a>
+              <a href={TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer" className="vision__cta-btn vision__cta-btn--secondary">Try the Telegram Bot</a>
             </div>
           </div>
         </div>

@@ -30,10 +30,10 @@ const features = [
         <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="m2 14 6-6 6 6 6-6"/>
       </svg>
     ),
-    title: 'AI-Powered Bot',
-    desc: 'PumpDex_Bot generates banners, creates communities, updates socials, and moderates — all from a single prompt.',
-    tag: 'AI',
-    tagColor: 'purple',
+    title: 'Telegram Bot',
+    desc: 'Scan any token, see what\'s trending, and get price & migration alerts — straight from Telegram, 24/7.',
+    tag: 'TELEGRAM',
+    tagColor: 'blue',
   },
   {
     icon: (

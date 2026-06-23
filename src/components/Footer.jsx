@@ -1,3 +1,4 @@
+import { TELEGRAM_BOT_URL } from '../botConfig'
 import './Footer.css'
 
 export default function Footer() {
@@ -22,9 +23,8 @@ export default function Footer() {
 
           <div className="footer__links-group">
             <h4>Community</h4>
-            <a href="#" target="_blank" rel="noopener">Twitter</a>
-            <a href="#" target="_blank" rel="noopener">Telegram</a>
-            <a href="#" target="_blank" rel="noopener">Discord</a>
+            <a href={TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer">Telegram Bot</a>
+            <a href="#bot">How it works</a>
           </div>
 
           <div className="footer__links-group">

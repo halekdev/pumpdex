@@ -9,6 +9,7 @@
     "dev:full": "node scripts/dev-api.mjs & vite",
     "build": "vite build",
     "setup": "node scripts/setup.mjs",
+    "bot:setup": "node scripts/telegram-setup.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

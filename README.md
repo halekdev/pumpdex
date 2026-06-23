@@ -63,6 +63,31 @@ curl -X POST https://your-app/api/migrate -H "Authorization: Bearer $CRON_SECRET
 curl -X POST "https://your-app/api/sync?pages=3" -H "Authorization: Bearer $CRON_SECRET"
 ```
 
+## Telegram bot
+
+The repo ships a fully working Telegram bot ([@pumpdextek_bot](https://t.me/pumpdextek_bot))
+served from [`api/telegram.js`](api/telegram.js) as a webhook.
+
+**Commands:** `/scan <mint>` (or paste a mint), `/trending`, `/top`,
+`/alert <mint>`, `/alerts`, `/unalert <mint>`, `/help`. Alerts are stored in the
+`bot_alerts` table and the [`api/cron/alerts.js`](api/cron/alerts.js) cron pings
+subscribers on a ±20% move or migration.
+
+**Setup:**
+
+1. Add to your environment (Vercel + `.env`):
+   - `TELEGRAM_BOT_TOKEN` — from BotFather
+   - `TELEGRAM_WEBHOOK_SECRET` — `openssl rand -hex 32`
+   - `SITE_URL` — your public site URL (used in bot links)
+2. Run the migration so `bot_alerts` exists (`POST /api/migrate` or `npm run setup`).
+3. Register the webhook + command menu against your deployed URL:
+   ```bash
+   npm run bot:setup -- https://your-app.vercel.app
+   ```
+
+The webhook verifies Telegram's `X-Telegram-Bot-Api-Secret-Token` header against
+`TELEGRAM_WEBHOOK_SECRET`, so only Telegram can reach it.
+
 ## Deploy
 
 Deploys to Vercel as-is. Set `DATABASE_URL`, `HELIUS_KEY`, `HELIUS_KEY_FALLBACK`,

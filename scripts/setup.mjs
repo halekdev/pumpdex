@@ -44,6 +44,15 @@ async function migrate() {
     )
   `
   await sql`CREATE INDEX IF NOT EXISTS idx_ph_mint_ts ON price_history (mint, timestamp DESC)`
+  await sql`
+    CREATE TABLE IF NOT EXISTS bot_alerts (
+      id SERIAL PRIMARY KEY, chat_id BIGINT NOT NULL, mint TEXT NOT NULL,
+      symbol TEXT, base_price NUMERIC NOT NULL DEFAULT 0,
+      was_migrated BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE (chat_id, mint)
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS idx_bot_alerts_mint ON bot_alerts (mint)`
   console.log('Migration complete!')
 }
 

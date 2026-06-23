@@ -68,7 +68,25 @@ export default async function handler(req, res) {
       CREATE INDEX IF NOT EXISTS idx_price_history_ts ON price_history (timestamp DESC)
     `
 
-    return res.status(200).json({ success: true, message: 'Migration complete (tokens + price_history)' })
+    // Telegram bot alert subscriptions
+    await sql`
+      CREATE TABLE IF NOT EXISTS bot_alerts (
+        id SERIAL PRIMARY KEY,
+        chat_id BIGINT NOT NULL,
+        mint TEXT NOT NULL,
+        symbol TEXT,
+        base_price NUMERIC NOT NULL DEFAULT 0,
+        was_migrated BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (chat_id, mint)
+      )
+    `
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_bot_alerts_mint ON bot_alerts (mint)
+    `
+
+    return res.status(200).json({ success: true, message: 'Migration complete (tokens + price_history + bot_alerts)' })
   } catch (error) {
     console.error('Migration error:', error)
     return res.status(500).json({ error: error.message })
