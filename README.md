@@ -1,101 +1,152 @@
-# PumpDex
+<div align="center">
 
-A real-time dashboard for Pump.fun / Solana tokens — live prices, market caps,
-holders, transactions, and per-timeframe price changes. Built with Vite + React
-on the frontend and Vercel serverless functions backed by Neon Postgres.
+# 🦉 PumpDex
 
-## Stack
+### The DexScreener killer, built for PumpFun degens.
 
-- **Frontend:** React 19, Vite, `lightweight-charts`, Solana wallet adapter
+**Every PumpFun token. Real-time. Zero cost. One Telegram command away.**
+
+[![Solana](https://img.shields.io/badge/Solana-9945FF?style=for-the-badge&logo=solana&logoColor=white)](https://solana.com)
+[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-229ED9?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/pumpdextek_bot)
+
+[**🚀 Launch App**](https://pumpdex.io) · [**🤖 Open the Bot**](https://t.me/pumpdextek_bot) · [**🗺️ Roadmap**](#-roadmap)
+
+</div>
+
+---
+
+## ⚡ Why PumpDex
+
+The old way costs **$299** just to update a token logo. That's a tax on builders. **PumpDex tears it down.**
+
+We give every creator and trader an institutional-grade terminal for the entire PumpFun ecosystem — live prices, market caps, holder maps, real-time transactions, and a Telegram bot that never sleeps — **for free.**
+
+> 💸 **$0 token updates** — keep the $299. <br>
+> ⚡ **Real-time everything** — prices, volume, holders, txns, the second they happen. <br>
+> 🤖 **A bot that actually does the work** — scan, track, and get alerted without leaving Telegram. <br>
+> 🦉 **Built for the culture** — fast, clean, and relentlessly degen-friendly.
+
+---
+
+## 🔥 Features
+
+| | |
+|---|---|
+| 📊 **Live PumpFun Scanner** | Every coin, real-time. Price, mcap, volume, liquidity, holders, and 5m/1h/6h/24h moves — all in one buttery-fast dashboard. |
+| 💸 **Free Token Updates** | Logo, description, socials, links — updated free, verified on-chain by the creator wallet. No gatekeepers, no fees. |
+| 🤖 **Telegram Bot** | Scan any token, see what's trending, and get price & migration alerts straight to your DMs, 24/7. |
+| 🔔 **Smart Alerts** | Subscribe to any token and get pinged the moment it pumps ±20% or migrates to Raydium. |
+| 📈 **Pro Charts** | Birdeye-powered candles, holder breakdowns, and live transaction feeds via WebSocket. |
+| 🧩 **Wallet-Verified** | Solana wallet auth so only the real creator can edit a token. |
+
+---
+
+## 🤖 The Telegram Bot — [@pumpdextek_bot](https://t.me/pumpdextek_bot)
+
+Your real-time token scout, living right inside Telegram. A fully working webhook bot — not a mockup.
+
+```
+/scan <mint>     → live price, mcap, volume, holders + quick-action buttons
+/trending        → the hottest coins on PumpFun right now
+/top             → biggest tokens by market cap
+/alert <mint>    → get pinged on ±20% moves or migration
+/alerts          → manage your watchlist
+```
+
+💡 **Pro move:** just paste a mint address — the bot scans it instantly.
+
+Powered by [`api/telegram.js`](api/telegram.js) (webhook) and [`api/cron/alerts.js`](api/cron/alerts.js) (the alert engine that watches your tokens around the clock).
+
+---
+
+## 🛠️ Tech Stack
+
+Lean, modern, and fast as hell.
+
+- **Frontend:** React 19 · Vite · `lightweight-charts` · Solana Wallet Adapter
 - **API:** Vercel serverless functions (`/api`)
-- **DB:** Neon Postgres (`@neondatabase/serverless`)
-- **Data sources:** Pump.fun API, Helius RPC, Jupiter price API, DexScreener
+- **Database:** Neon Postgres (`@neondatabase/serverless`)
+- **Data feeds:** Pump.fun · Helius RPC · Jupiter · DexScreener
+- **Bot:** Telegram Bot API webhook + cron-driven alert engine
 
-## Setup
+---
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Copy the env template and fill in your values:
-   ```bash
-   cp .env.example .env
-   ```
-   See [`.env.example`](.env.example) for the full list. Required:
-   - `DATABASE_URL` — Neon Postgres connection string
-   - `HELIUS_KEY` (+ optional `HELIUS_KEY_FALLBACK`) — Helius RPC keys
-   - `CRON_SECRET` — protects the privileged/cron endpoints (see below)
-3. Create the database schema:
-   ```bash
-   npm run setup
-   ```
-
-## Development
+## 🚀 Quick Start
 
 ```bash
-npm run dev        # Vite frontend only (proxies /api in prod)
-npm run dev:api    # local Express mirror of the serverless API
-npm run dev:full   # both together
+# 1. Install
+npm install
+
+# 2. Configure (see .env.example for the full list)
+cp .env.example .env
+#   DATABASE_URL  · HELIUS_KEY (+ FALLBACK) · CRON_SECRET
+#   TELEGRAM_BOT_TOKEN · TELEGRAM_WEBHOOK_SECRET · SITE_URL
+
+# 3. Bootstrap the database
+npm run setup
+
+# 4. Run it
+npm run dev:full        # frontend + local API together
 ```
 
-The frontend talks to `/api/*`. In production those are the Vercel functions in
-[`api/`](api/); locally `scripts/dev-api.mjs` reimplements them against the same DB.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Vite frontend only |
+| `npm run dev:api` | Local Express mirror of the serverless API |
+| `npm run dev:full` | Both, together |
+| `npm run build` | Production build |
+| `npm run setup` | Full DB bootstrap (schema + initial token import) |
+| `npm run bot:setup` | Register the Telegram webhook + command menu |
+| `npm run lint` | ESLint |
 
-## Data pipeline
+---
 
-- `POST /api/migrate` — create tables/indexes (idempotent). **Auth required.**
-- `POST /api/sync` — pull top tokens from Pump.fun + Jupiter prices and upsert
-  them. **Auth required.**
-- `GET  /api/cron/snapshot` — snapshots prices into `price_history` every 5 min.
-  Scheduled via [`vercel.json`](vercel.json); Vercel sends the cron auth header.
-- `GET  /api/tokens`, `/api/tokens/live`, `/api/token/[mint]`, `/holders`,
-  `/transactions`, `/history` — read endpoints consumed by the UI.
+## 🌐 Deploy in Minutes
 
-### Authorization
+Ships to **Vercel** out of the box.
 
-`/api/migrate`, `/api/sync`, and `/api/cron/snapshot` require the `CRON_SECRET`.
-Pass it as `Authorization: Bearer $CRON_SECRET` (Vercel cron does this
-automatically) or `?secret=$CRON_SECRET`. If `CRON_SECRET` is unset, the
-endpoints stay open in development but fail closed in production.
-
-```bash
-curl -X POST https://your-app/api/migrate -H "Authorization: Bearer $CRON_SECRET"
-curl -X POST "https://your-app/api/sync?pages=3" -H "Authorization: Bearer $CRON_SECRET"
-```
-
-## Telegram bot
-
-The repo ships a fully working Telegram bot ([@pumpdextek_bot](https://t.me/pumpdextek_bot))
-served from [`api/telegram.js`](api/telegram.js) as a webhook.
-
-**Commands:** `/scan <mint>` (or paste a mint), `/trending`, `/top`,
-`/alert <mint>`, `/alerts`, `/unalert <mint>`, `/help`. Alerts are stored in the
-`bot_alerts` table and the [`api/cron/alerts.js`](api/cron/alerts.js) cron pings
-subscribers on a ±20% move or migration.
-
-**Setup:**
-
-1. Add to your environment (Vercel + `.env`):
-   - `TELEGRAM_BOT_TOKEN` — from BotFather
-   - `TELEGRAM_WEBHOOK_SECRET` — `openssl rand -hex 32`
-   - `SITE_URL` — your public site URL (used in bot links)
-2. Run the migration so `bot_alerts` exists (`POST /api/migrate` or `npm run setup`).
-3. Register the webhook + command menu against your deployed URL:
+1. Import the repo into Vercel.
+2. Set the env vars: `DATABASE_URL`, `HELIUS_KEY`, `HELIUS_KEY_FALLBACK`, `CRON_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `SITE_URL`.
+3. Seed the database — fire the migrate + sync endpoints once:
+   ```bash
+   curl -X POST https://your-app/api/migrate -H "Authorization: Bearer $CRON_SECRET"
+   curl -X POST "https://your-app/api/sync?pages=3" -H "Authorization: Bearer $CRON_SECRET"
+   ```
+4. Wake the bot:
    ```bash
    npm run bot:setup -- https://your-app.vercel.app
    ```
 
-The webhook verifies Telegram's `X-Telegram-Bot-Api-Secret-Token` header against
-`TELEGRAM_WEBHOOK_SECRET`, so only Telegram can reach it.
+Crons in [`vercel.json`](vercel.json) keep prices and alerts fresh every 5 minutes — automatically.
 
-## Deploy
+---
 
-Deploys to Vercel as-is. Set `DATABASE_URL`, `HELIUS_KEY`, `HELIUS_KEY_FALLBACK`,
-and `CRON_SECRET` in the Vercel project environment variables, then run the
-migrate + sync endpoints once to seed the database.
+## 🔒 Built Right
 
-## Scripts
+- 🛡️ **Privileged endpoints locked down** — `/migrate`, `/sync`, and crons require `CRON_SECRET` (Bearer header or `?secret=`).
+- ✅ **Bot webhook verified** — every call is checked against Telegram's secret-token header.
+- ⚡ **Batched DB writes & bounded queries** — engineered to fly on serverless without timing out.
 
-- `npm run build` — production build
-- `npm run lint` — ESLint
-- `npm run setup` — full DB bootstrap (migrate + initial token import)
+---
+
+## 🗺️ Roadmap
+
+| Phase | Status | What's coming |
+|---|---|---|
+| **1 — Launch** | 🟢 Live | PumpFun scanner · free token updates · Telegram bot · alerts |
+| **2 — Scale** | 🔜 Next | Multi-chain · advanced analytics · portfolio tracking · public API |
+| **3 — Dominate** | 🔮 Soon | Full DEX aggregation · in-app trading · mobile app · governance |
+
+---
+
+<div align="center">
+
+### Removing the $299 barrier. Giving power back to every token creator.
+
+**[🚀 Launch PumpDex](https://pumpdex.io) · [🤖 Try the Bot](https://t.me/pumpdextek_bot)**
+
+*Built for the culture. 🦉*
+
+</div>
