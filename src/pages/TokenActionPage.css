@@ -758,6 +758,20 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.tap__btn--telegram {
+  background: linear-gradient(135deg, #229ed9, #1c8fc4);
+  color: #fff;
+  padding: 12px 28px;
+  font-size: 15px;
+  border: 1px solid rgba(34, 158, 217, 0.5);
+  border-radius: 100px;
+}
+
+.tap__btn--telegram:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(34, 158, 217, 0.4);
+}
+
 .tap__btn--lg {
   padding: 14px 32px;
   font-size: 15px;

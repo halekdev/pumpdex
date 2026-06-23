@@ -42,8 +42,8 @@ const features = [
       </svg>
     ),
     title: 'Instant Communities',
-    desc: 'One command creates your community with custom name, description, banner — and makes you admin instantly.',
-    tag: 'NEW',
+    desc: 'One command spins up your community with custom name, description and banner — and makes you admin instantly.',
+    tag: 'SOON',
     tagColor: 'yellow',
   },
   {
@@ -53,7 +53,7 @@ const features = [
       </svg>
     ),
     title: 'Auto Social Updates',
-    desc: 'Tell the bot your new website, Twitter or Telegram link. It updates everything across PumpDex automatically.',
+    desc: 'Update your website, Twitter or Telegram link anytime — it syncs across PumpDex instantly, verified by your wallet.',
     tag: 'AUTO',
     tagColor: 'green',
   },
@@ -64,8 +64,8 @@ const features = [
       </svg>
     ),
     title: 'AI Moderation',
-    desc: 'PumpDex_Bot can moderate your community 24/7. Keep it clean and active without lifting a finger.',
-    tag: 'BOT',
+    desc: 'AI-powered moderation keeps your community clean and active 24/7 — without you lifting a finger.',
+    tag: 'SOON',
     tagColor: 'blue',
   },
 ]

@@ -207,6 +207,10 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
   const tweetText = token
     ? `Check out $${token.symbol} on @PumpDexApp!\n\nPrice: ${formatPrice(token.price)}\nMcap: ${formatCompact(token.market_cap)}\n\nScan any PumpFun token:\npumpdex.io/#token/${mint}`
     : ''
+  const shareUrl = token ? `https://pumpdex.io/#token/${mint}` : ''
+  const telegramShareText = token
+    ? `Check out $${token.symbol} on PumpDex! Price: ${formatPrice(token.price)} · Mcap: ${formatCompact(token.market_cap)} — scan any PumpFun token:`
+    : ''
 
   return (
     <div className={`tap ${visible ? 'tap--visible' : ''}`}>
@@ -415,7 +419,7 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
           </h2>
 
           <div className="tap__banner-section">
-            <p className="tap__banner-desc">Generate a professional Twitter/X header banner for your token. Perfect for community posts and promotions.</p>
+            <p className="tap__banner-desc">Generate a professional social header banner for your token (1500 x 500). Perfect for Telegram, X and community posts.</p>
             <div className="tap__banner-form">
               <input
                 type="text"
@@ -463,8 +467,8 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
           <div className="tap__share-section">
             <div className="tap__share-card">
               <div className="tap__share-left">
-                <h3>Share on X / Twitter</h3>
-                <p>Tag <strong>@PumpDexApp</strong> and share this token with the community. Help us grow and we'll feature top shared tokens!</p>
+                <h3>Share this token</h3>
+                <p>Tag <strong>@PumpDexApp</strong> and share with the community. Help us grow and we'll feature top shared tokens!</p>
                 <div className="tap__share-preview">
                   <span className="tap__share-preview-label">Preview:</span>
                   <pre className="tap__share-preview-text">{tweetText}</pre>
@@ -480,7 +484,16 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                   Post on X
                 </a>
-                <p className="tap__share-note">Tag @PumpDexApp to get featured</p>
+                <a
+                  className="tap__btn tap__btn--telegram"
+                  href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(telegramShareText)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6 18.9 19.2c-.23 1.02-.84 1.27-1.7.79l-4.7-3.46-2.27 2.18c-.25.25-.46.46-.94.46l.34-4.78L18.6 6.6c.38-.34-.08-.53-.59-.19L7.26 13.3l-4.66-1.46c-1.01-.32-1.03-1.01.21-1.5l18.22-7.02c.84-.31 1.58.2 1.31 1.28Z"/></svg>
+                  Share on Telegram
+                </a>
+                <p className="tap__share-note">Share to grow the community</p>
               </div>
             </div>
           </div>
