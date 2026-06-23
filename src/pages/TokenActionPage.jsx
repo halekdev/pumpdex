@@ -205,7 +205,7 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
   }
 
   const tweetText = token
-    ? `Check out $${token.symbol} on @PumpDexApp!\n\nPrice: ${formatPrice(token.price)}\nMcap: ${formatCompact(token.market_cap)}\n\nScan any PumpFun token:\npumpdex.io/#token/${mint}`
+    ? `Check out $${token.symbol} on PumpDex!\n\nPrice: ${formatPrice(token.price)}\nMcap: ${formatCompact(token.market_cap)}\n\nScan any PumpFun token:\npumpdex.io/#token/${mint}`
     : ''
   const shareUrl = token ? `https://pumpdex.io/#token/${mint}` : ''
   const telegramShareText = token
@@ -468,7 +468,7 @@ export default function TokenActionPage({ mint, onBack, onLaunchApp }) {
             <div className="tap__share-card">
               <div className="tap__share-left">
                 <h3>Share this token</h3>
-                <p>Tag <strong>@PumpDexApp</strong> and share with the community. Help us grow and we'll feature top shared tokens!</p>
+                <p>Share this token with the community and help us grow. Top shared tokens get featured!</p>
                 <div className="tap__share-preview">
                   <span className="tap__share-preview-label">Preview:</span>
                   <pre className="tap__share-preview-text">{tweetText}</pre>
