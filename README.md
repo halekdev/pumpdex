@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/pumpdex-logo.jpg" alt="PumpDex" width="180" />
+
 # 🦉 PumpDex
 
 ### The DexScreener killer, built for PumpFun degens.
